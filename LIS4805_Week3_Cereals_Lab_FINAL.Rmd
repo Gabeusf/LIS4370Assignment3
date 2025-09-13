@@ -1,0 +1,81 @@
+---
+title: "LIS4805 – Week 3: Breakfast Cereals Lab"
+author: "Gabriel Myles"
+output:
+  word_document:
+    toc: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = TRUE, warning = FALSE)
+```
+
+## Set working directory (optional)
+
+```{r setwd}
+# Example ONLY (edit then uncomment if you need it):
+# setwd("~/Desktop/LIS4805")
+```
+
+## 1) Load the data
+
+```{r load-data}
+# Make sure 'Cereals.csv' is in the SAME folder as this .Rmd
+cereals.df <- read.csv("Cereals.csv", stringsAsFactors = TRUE)
+
+# Quick checks
+str(cereals.df)
+head(cereals.df)
+```
+
+## 2) Identify variable types
+
+**Nominal (IDs/labels):** `name`, `mfr`, `type`  
+**Ordinal:** `shelf` (1 = low, 2 = middle, 3 = high)  
+**Quantitative/Numerical:** `calories, protein, fat, sodium, fiber, carbo, sugars, potass, vitamins, weight, cups, rating`
+
+## 3) Summary stats for quantitative variables
+
+```{r summary-stats}
+quant.cols <- c("calories","protein","fat","sodium","fiber","carbo","sugars",
+                "potass","vitamins","shelf","weight","cups","rating")
+
+summary.stats <- sapply(cereals.df[quant.cols], function(x) c(
+  mean   = mean(x, na.rm=TRUE),
+  median = median(x, na.rm=TRUE),
+  min    = min(x, na.rm=TRUE),
+  max    = max(x, na.rm=TRUE),
+  sd     = sd(x,  na.rm=TRUE)
+))
+round(summary.stats, 2)
+
+par(mfcol=c(4,4), mar=c(3,3,2,1))
+for (nm in quant.cols) {
+  hist(cereals.df[[nm]], main=nm, xlab="", col="gray")
+}
+par(mfcol=c(1,1))
+```
+
+## 4) Boxplots
+
+```{r boxplots, fig.width=6, fig.height=4}
+boxplot(calories ~ type, data=cereals.df,
+        main="Calories by Cereal Type", xlab="Type", ylab="Calories")
+
+boxplot(rating ~ shelf, data=cereals.df,
+        main="Rating by Shelf Height", xlab="Shelf (1=low, 2=mid, 3=high)", ylab="Rating")
+```
+
+## 5) Correlation matrix + normalization
+
+```{r correlations, fig.width=8, fig.height=8}
+options(digits=2)
+corr_raw <- cor(na.omit(cereals.df[quant.cols]))
+corr_raw
+pairs(na.omit(cereals.df[quant.cols]), main="Pairs Plot of Quantitative Variables")
+
+scaled <- scale(cereals.df[quant.cols])
+corr_scaled <- cor(na.omit(scaled))
+all.equal(corr_raw, corr_scaled)  # Pearson r is scale-invariant
+corr_scaled
+```
